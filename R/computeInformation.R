@@ -240,82 +240,82 @@ computeMutualInfo <- function(x, y,
   result$info <- rescpp$info
   result$infok <- rescpp$infok
 
-  X_num <- if (is_continuous[1]) input_double[, 1] else input_factor[, 1]
-  Y_num <- if (is_continuous[2]) input_double[, 2] else input_factor[, 2]
+  #X_num <- if (is_continuous[1]) input_double[, 1] else input_factor[, 1]
+  #Y_num <- if (is_continuous[2]) input_double[, 2] else input_factor[, 2]
 
-  if (any(is_continuous)) {
+  #if (any(is_continuous)) {
     # Parse cutpointsmatrix
-    epsilon <- min(c(sd(X_num), sd(Y_num))) / 100
-    niterations <- nrow(rescpp$cutpointsmatrix) / maxbins
-    result$n_iterations <- niterations
-    for (i in 0:(niterations - 1)) {
-      result[[paste0("iteration", i + 1)]] <- list()
-      for (l in 1:2) {
-        if (!is_continuous[l]) next
+    #epsilon <- min(c(sd(X_num), sd(Y_num))) / 100
+    #niterations <- nrow(rescpp$cutpointsmatrix) / maxbins
+    #result$n_iterations <- niterations
+    #for (i in 0:(niterations - 1)) {
+    #  result[[paste0("iteration", i + 1)]] <- list()
+    #  for (l in 1:2) {
+     #   if (!is_continuous[l]) next
 
-        data <- if (l == 1) X_num else Y_num
-        clean_cutpoints <- rescpp$cutpointsmatrix[, l][(maxbins*i) + (1:maxbins)]
-        clean_cutpoints <- clean_cutpoints[clean_cutpoints != -1]
-        clean_cutpoints <- sort(data)[clean_cutpoints + 1]
+      #  data <- if (l == 1) X_num else Y_num
+       # clean_cutpoints <- rescpp$cutpointsmatrix[, l][(maxbins*i) + (1:maxbins)]
+       # clean_cutpoints <- clean_cutpoints[clean_cutpoints != -1]
+        #clean_cutpoints <- sort(data)[clean_cutpoints + 1]
 
-        uniquedata <- sort(unique(data))
-        if (length(clean_cutpoints) > 0) {
+       # uniquedata <- sort(unique(data))
+       # if (length(clean_cutpoints) > 0) {
           # Take midpoints between two consecutive unique values instead of
           # the values themselves
-          clean_cutpoints <- sapply(clean_cutpoints, function(x) {
-            if (x < uniquedata[length(uniquedata)]) {
-              return((min(uniquedata[uniquedata > x]) +
-                max(uniquedata[uniquedata <= x])) / 2)
-            } else {
-              return(x)
-            }
-          })
-        }
-        clean_cutpoints <- c(uniquedata[1] - epsilon, clean_cutpoints)
-        if (max(clean_cutpoints) < uniquedata[length(uniquedata)]) {
-          clean_cutpoints <- c(
-            clean_cutpoints,
-            uniquedata[length(uniquedata)] + epsilon
-          )
-        }
-        result[[paste0("iteration", i + 1)]][[paste0("cutpoints", l)]] <-
-          clean_cutpoints
-      }
-    }
-    for (l in 1:n_nodes) {
-      result[[paste0("cutpoints", l)]] <-
-        result[[paste0("iteration", niterations)]][[paste0("cutpoints", l)]]
-    }
-  }
+        #  clean_cutpoints <- sapply(clean_cutpoints, function(x) {
+         #   if (x < uniquedata[length(uniquedata)]) {
+          #    return((min(uniquedata[uniquedata > x]) +
+           #     max(uniquedata[uniquedata <= x])) / 2)
+           # } else {
+            #  return(x)
+            #}
+          #})
+       # }
+       # clean_cutpoints <- c(uniquedata[1] - epsilon, clean_cutpoints)
+       # if (max(clean_cutpoints) < uniquedata[length(uniquedata)]) {
+        #  clean_cutpoints <- c(
+         #   clean_cutpoints,
+         #   uniquedata[length(uniquedata)] + epsilon
+         # )
+       # }
+       # result[[paste0("iteration", i + 1)]][[paste0("cutpoints", l)]] <-
+       #   clean_cutpoints
+     # }
+   # }
+   # for (l in 1:n_nodes) {
+   #   result[[paste0("cutpoints", l)]] <-
+    #    result[[paste0("iteration", niterations)]][[paste0("cutpoints", l)]]
+   # }
+  #}
 
-  if (plot) {
-    nameDist1 <- deparse(substitute(x))
-    nameDist2 <- deparse(substitute(y))
-    if (base::requireNamespace("ggplot2", quietly = TRUE) &&
-        base::requireNamespace("gridExtra", quietly = TRUE)) {
-      if (all(is_continuous[1:2])) {
-        result$plot <- jointplot_hist(X_num, Y_num, result, nameDist1, nameDist2)
-      } else if (any(is_continuous[1:2])) {
-        result$plot <- barplot_disc(
-          input_data[, 1],
-          input_data[, 2],
-          result,
-          !is_continuous,
-          nameDist1,
-          nameDist2
-        )
-      } else {
-        result$plot <- grid_plot(
-          input_data[, 1],
-          input_data[, 2],
-          nameDist1,
-          nameDist2
-        )
-      }
-    } else {
-      warning("Plotting requires ggplot2 and gridExtra.")
-    }
-  }
+#  if (plot) {
+ #   nameDist1 <- deparse(substitute(x))
+  #  nameDist2 <- deparse(substitute(y))
+  #  if (base::requireNamespace("ggplot2", quietly = TRUE) &&
+   #     base::requireNamespace("gridExtra", quietly = TRUE)) {
+   #   if (all(is_continuous[1:2])) {
+    #    result$plot <- jointplot_hist(X_num, Y_num, result, nameDist1, nameDist2)
+    #  } else if (any(is_continuous[1:2])) {
+     #   result$plot <- barplot_disc(
+     #     input_data[, 1],
+      #    input_data[, 2],
+      #    result,
+       #   !is_continuous,
+       #   nameDist1,
+       #   nameDist2
+      #  )
+     # } else {
+      #  result$plot <- grid_plot(
+       #   input_data[, 1],
+        #  input_data[, 2],
+        #  nameDist1,
+        #  nameDist2
+        #)
+     # }
+   # } else {
+    #  warning("Plotting requires ggplot2 and gridExtra.")
+   # }
+  #}
 
   return(result)
 }
