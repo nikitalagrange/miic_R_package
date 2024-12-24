@@ -101,7 +101,7 @@ TempVector<int> getDataOrder(const TempGrid2d<int>& data,
   return order;
 }
 
-int fillHashList(const structure::TempGrid2d<int>& data,
+long long int fillHashList(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& ui_list,
     structure::TempVector<int>& hash_list) {
@@ -109,23 +109,23 @@ int fillHashList(const structure::TempGrid2d<int>& data,
   if (n_ui == 1) {
     int u = ui_list[0];
     std::copy(data.row_begin(u), data.row_end(u), begin(hash_list));
-    return r_list[u];
+    return (long long) r_list[u];
   }
   int n_samples = data.n_cols();
   if (n_ui == 2) {
-    int u0 = ui_list[0], u1 = ui_list[1];
-    int r0 = r_list[u0];
+    long long int u0 = ui_list[0], u1 = ui_list[1];
+    long long int r0 = r_list[u0];
     for (int i = 0; i < n_samples; ++i) {
       hash_list[i] += data(u0, i) + data(u1, i) * r0;
     }
-    return r0 * r_list[u1];
+    return r0 * (long long) r_list[u1];
   }
   utility::TempAllocatorScope scope;
   structure::TempVector<int> r_joint_list(r_list.size(), 0);
-  int n_levels_product{1};
+  lonh long int n_levels_product{1};
   for (const auto u : ui_list) {
     r_joint_list[u] = n_levels_product;
-    n_levels_product *= r_list[u];
+    n_levels_product *= (long long) r_list[u];
     // FRS 4 jan 2024: remove fix to limit number of joint factors
     // if (n_levels_product < 0)
     //   Rcpp::stop ("Maximum number of levels for joint factors exceeded.\nPlease raise an issue on the MIIC github.\n");
