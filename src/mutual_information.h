@@ -19,7 +19,7 @@ structure::TempVector<int> getDataOrder(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& var_idx);
 
-int fillHashList(const structure::TempGrid2d<int>& data,
+long long int fillHashList(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& ui_list,
     structure::TempVector<int>& hash_list);
@@ -107,12 +107,12 @@ int setJointFactors(const TempGrid2d<int>& factors,
   TempAllocatorScope scope;
   // Compute unique hash value for each sample in the joint space
   TempVector<int> hash_u(n_samples, 0);
-  int level_product = fillHashList(factors, r_list, var_idx, hash_u);
+  long long int level_product = fillHashList(factors, r_list, var_idx, hash_u);
 
   int r_joint{0};  // get ready to count
   if (level_product <= 8 * n_samples) {
     // Use large sparse vectors, no sort
-    TempVector<int> counts(level_product);
+    TempVector<long long int> counts(level_product);
     for (const auto h : hash_u)
       counts[h] = 1;
     // Order of the levels follow the order of the hash values,
