@@ -41,7 +41,7 @@ InfoBlock computeCondMutualInfoDiscrete(const TempGrid2d<int>& data,
   TempVector<int> ui_list(begin(var_idx) + 2, end(var_idx));
   TempVector<int> order = getDataOrder(data, r_list, var_idx);
   TempVector<int> hash_u(n_samples, 0);
-  int ru = fillHashList(data, r_list, ui_list, hash_u);
+  long long int ru = fillHashList(data, r_list, ui_list, hash_u);
   // Entropy terms
   double Hu{0}, Huy{0}, Hux{0}, Huyx{0};
   // Complexity terms
@@ -149,7 +149,7 @@ Info3PointBlock computeInfo3PointAndScoreDiscrete(const TempGrid2d<int>& data,
 
   TempVector<int> order = getDataOrder(data, r_list, xyui_list);
   TempVector<int> hash_u(n_samples, 0);
-  int ru = fillHashList(data, r_list, ui_list, hash_u);
+  long long int ru = fillHashList(data, r_list, ui_list, hash_u);
   // Entropy terms
   double Hu{0}, Huy{0}, Hux{0}, Huyx{0};
   double Hzu{0}, Hzuy{0}, Hzux{0}, Hzuyx{0};
