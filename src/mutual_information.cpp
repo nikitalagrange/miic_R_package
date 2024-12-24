@@ -122,7 +122,7 @@ long long int fillHashList(const structure::TempGrid2d<int>& data,
   }
   utility::TempAllocatorScope scope;
   structure::TempVector<int> r_joint_list(r_list.size(), 0);
-  lonh long int n_levels_product{1};
+  long long int n_levels_product{1};
   for (const auto u : ui_list) {
     r_joint_list[u] = n_levels_product;
     n_levels_product *= (long long) r_list[u];
