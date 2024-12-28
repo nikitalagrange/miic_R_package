@@ -123,11 +123,14 @@ long long int fillHashList(const structure::TempGrid2d<int>& data,
   utility::TempAllocatorScope scope;
   structure::TempVector<int> r_joint_list(r_list.size(), 0);
   long long int n_levels_product{1};
+  long long int n_levels_product_old{1};
   for (const auto u : ui_list) {
     r_joint_list[u] = n_levels_product;
+    n_levels_product_old = n_levels_product;
     n_levels_product *= (long long) r_list[u];
     // FRS 4 jan 2024: remove fix to limit number of joint factors
-    // if (n_levels_product < 0)
+    if (n_levels_product < 0)
+        n_levels_product = n_levels_product_old;
     //   Rcpp::stop ("Maximum number of levels for joint factors exceeded.\nPlease raise an issue on the MIIC github.\n");
   }
 
