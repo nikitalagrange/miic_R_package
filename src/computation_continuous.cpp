@@ -771,16 +771,16 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   int n_test_max = min(min(initbins, 20), n_levels_min);
 
   // FRS 4 jan 2024: remove fix to limit number of joint factors
-  if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
-     {
-    Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
-    n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
-    n_test_max = 20;
-    Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
+ // if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
+  //   {
+   // Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
+   // n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
+   // n_test_max = 20;
+   // Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
 
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
-  }
+  //}
   TempVector<int> r_temp(3);
   InfoBlock res_temp;
   for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
@@ -1094,7 +1094,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     bool converged{false};
     for (int i = step - 1; i >= 0; i--) {
       // If no real improvement over last information
-      if ((fabs(cond_Ik - Ik_list[i]) < kEpsilon)||(cond_Ik<=0)) {
+      if (fabs(cond_Ik - Ik_list[i]) < kEpsilon) {
         converged = true;
         Ixy_ui = accumulate(begin(I_list) + i, begin(I_list) + step, 0.0);
         Ikxy_ui = accumulate(begin(Ik_list) + i, begin(Ik_list) + step, 0.0);
