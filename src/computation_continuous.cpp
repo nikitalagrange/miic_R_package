@@ -1094,7 +1094,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     bool converged{false};
     for (int i = step - 1; i >= 0; i--) {
       // If no real improvement over last information
-      if ((fabs(cond_Ik - Ik_list[i]) < kEpsilon)||(cond_Ik<=0 && Ik_list[i]<=0) {
+      if ((fabs(cond_Ik - Ik_list[i]) < kEpsilon)||(cond_Ik<=0 && Ik_list[i]<=0)) {
         converged = true;
         Ixy_ui = accumulate(begin(I_list) + i, begin(I_list) + step, 0.0);
         Ikxy_ui = accumulate(begin(Ik_list) + i, begin(Ik_list) + step, 0.0);
