@@ -41,7 +41,7 @@ struct is_int_container<T, std::remove_reference_t<T>,
     void_t<std::enable_if_t<
                has_subscript_operator<std::remove_reference_t<T>>::value>,
         std::enable_if_t<std::is_same<
-            typename std::remove_reference_t<T>::value_type, long long int>::value>>>
+            typename std::remove_reference_t<T>::value_type, int>::value>>>
     : std::true_type {};
 
 template <typename T, typename Allocator = std::allocator<T>>
@@ -287,7 +287,7 @@ struct ExecutionTime {
 };
 
 struct CutPointsInfo {
-  Grid2d<long long int> cutpoints;
+  Grid2d<int> cutpoints;
   double I{0};
   double Ik{0};
   double I_equal_freq_max{0};
