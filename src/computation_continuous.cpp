@@ -775,6 +775,8 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
      {
     Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
     n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
+    Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
+
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
   }
