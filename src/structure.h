@@ -287,7 +287,7 @@ struct ExecutionTime {
 };
 
 struct CutPointsInfo {
-  Grid2d<int> cutpoints;
+  Grid2d<long long int> cutpoints;
   double I{0};
   double Ik{0};
   double I_equal_freq_max{0};
