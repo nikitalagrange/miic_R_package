@@ -804,7 +804,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
     double Ik_x_yu = res_temp.I - res_temp.k;
 
-    if ((Ik_y_xu + Ik_x_yu) > best_res) {
+    if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&Ik_x_yu>0)) {
       best_initbins = test_n_bins;
       best_res = (Ik_y_xu + Ik_x_yu);
     }
@@ -1094,7 +1094,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     bool converged{false};
     for (int i = step - 1; i >= 0; i--) {
       // If no real improvement over last information
-      if ((fabs(cond_Ik - Ik_list[i]) < kEpsilon)||(cond_Ik<=0)) {
+      if (fabs(cond_Ik - Ik_list[i]) < kEpsilon) {
         converged = true;
         Ixy_ui = accumulate(begin(I_list) + i, begin(I_list) + step, 0.0);
         Ikxy_ui = accumulate(begin(Ik_list) + i, begin(Ik_list) + step, 0.0);
