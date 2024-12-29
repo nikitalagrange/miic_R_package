@@ -784,6 +784,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   InfoBlock res_temp;
   for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
     // Initialize factors, cut and r
+    Rcpp::Rcout << "test_n_bins : " << std::endl << test_n_bins << "\n";
     resetCutPoints(levels, is_continuous, var_idx, 0, n_nodes, test_n_bins,
         n_samples, cut);
     updateFactors (data, data_idx, cut, is_continuous,
