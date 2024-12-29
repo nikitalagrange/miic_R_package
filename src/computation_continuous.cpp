@@ -126,7 +126,7 @@ void updateFactors (const TempGrid2d<int>& data,
     // Affect all the values till the cut position to the value of 'level', then
     // increase the 'level' and proceed in the same way to the next cut position
     //
-    int level = 0;
+    long long int level = 0;
     for (int data_ordered_sample_idx = 0;
          data_ordered_sample_idx < n_samples;
          ++data_ordered_sample_idx) {
