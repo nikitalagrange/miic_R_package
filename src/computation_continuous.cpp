@@ -51,7 +51,7 @@ void resetCutPoints (const TempVector<int>& levels,
                      const TempVector<int>& vars_to_process,
                      int vars_to_process_begin,
                      int vars_to_process_end,
-                     long long int init_nbin, int n_samples,
+                     int init_nbin, int n_samples,
                      TempGrid2d<int>& cuts) {
   for (int vars_to_process_idx = vars_to_process_begin;
        vars_to_process_idx < vars_to_process_end;
@@ -413,7 +413,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
     // Compute target entropy
     //
     double Hk_cum_bin_target = 0, H_cum_bin_target = 0;
-    for (long long int level = 0; level < nb_factors_target; level++) {
+    for (int level = 0; level < nb_factors_target; level++) {
       int weighted_count = flag_weights
                                ? int(weight_per_sample * cum_counts_target[level] + 0.5)
                                : cum_counts_target[level];
@@ -481,7 +481,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
       // compute the information of the remaining part {1,2,3}
       //
       double Hk_cut_to_cum_joint = 0, H_cut_to_cum_joint = 0;
-      for (long long int level = 0; level < nb_factors_joint; level++) {
+      for (int level = 0; level < nb_factors_joint; level++) {
         int weighted_count = flag_weights
                                  ? int(weight_per_sample * cut_counts_joint[level] + 0.5)
                                  : cut_counts_joint[level];
@@ -490,7 +490,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
       H_cut_to_cum_joint = Hk_cut_to_cum_joint;
 
       double Hk_cut_to_cum_target = 0, H_cut_to_cum_target = 0;
-      for (long long int level = 0; level < nb_factors_target; level++) {
+      for (int level = 0; level < nb_factors_target; level++) {
         int weighted_count = flag_weights
                                  ? int(weight_per_sample * cut_counts_target[level] + 0.5)
                                  : cut_counts_target[level];
@@ -743,11 +743,11 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   double n_eff = accumulate(begin(weights), end(weights), 0.0);
   int u_initbins = min(30, max(2, int(0.5 + pow(n_eff, 1.0/(n_nodes)))));
   // allocation factors  x y
-  TempGrid2d<long long int> datafactors(n_nodes, n_samples);
-  TempGrid2d<long long int> cut(n_nodes, maxbins);
-  TempGrid2d<long long int> cut_y_u(n_nodes, maxbins);
-  TempGrid2d<long long int> cut_x_u(n_nodes, maxbins);
-  TempVector<long long int> r(n_nodes);  // n_levels of optimized variables
+  TempGrid2d<int> datafactors(n_nodes, n_samples);
+  TempGrid2d<int> cut(n_nodes, maxbins);
+  TempGrid2d<int> cut_y_u(n_nodes, maxbins);
+  TempGrid2d<int> cut_x_u(n_nodes, maxbins);
+  TempVector<int> r(n_nodes);  // n_levels of optimized variables
 
   // Initialize discrete factors and n_levels
   for (int l = 0; l < n_nodes; ++l) {
