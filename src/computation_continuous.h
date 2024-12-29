@@ -12,7 +12,7 @@ namespace computation {
 structure::InfoBlock computeCondMutualInfo(
     const structure::TempGrid2d<int>& data,
     const structure::TempGrid2d<int>& data_idx,
-    const structure::TempVector<int>& levels,
+    const structure::TempVector<long long int>& levels,
     const structure::TempVector<int>& is_continuous,
     const structure::TempVector<int>& var_idx,
     const structure::TempVector<double>& sample_weights,
