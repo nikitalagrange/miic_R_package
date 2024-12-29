@@ -762,13 +762,13 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   // Find the best initial conditions with the same number of bins (equalfreq)
   // on all continuous variables.
   double best_res{std::numeric_limits<double>::lowest()};
-  int best_initbins{initbins};
-  int n_levels_min{n_samples};
+  long long int best_initbins{initbins};
+  long long int n_levels_min{n_samples};
   for (int l = 0; l < n_nodes; ++l) {
     if (is_continuous[var_idx[l]] == 1)
       n_levels_min = min(n_levels_min, levels[var_idx[l]]);
   }
-  int n_test_max = min(min(initbins, 20), n_levels_min);
+  long long int n_test_max = min(min(initbins, 20), n_levels_min);
 
   // FRS 4 jan 2024: remove fix to limit number of joint factors
   // if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
