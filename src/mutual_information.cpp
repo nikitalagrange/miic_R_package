@@ -23,7 +23,8 @@ void setUyxJointFactors(const TempGrid2d<int>& factors,
     TempVector<int>& ruyx) {
   TempAllocatorScope scope;
 
-  int n_ui = factors.n_rows() - 2;
+  long long int n_ui = factors.n_rows() - 2;
+  Rcpp::Rcout << "L21_setJointFactor: " << "\n";
   TempVector<int> ui_list;
   ui_list.reserve(n_ui);
   for (int u = 2; u < n_ui + 2; ++u) {
@@ -31,6 +32,7 @@ void setUyxJointFactors(const TempGrid2d<int>& factors,
       ui_list.push_back(u);
   }
   // Set u joint factors
+   Rcpp::Rcout << "L35_setJointFactor: " << "\n";
   ruyx[0] = setJointFactors(factors, r_list, ui_list, uyxfactors.getRow(0));
   // Copy x and y factors and n_levels
   std::copy(factors.row_begin(0), factors.row_end(0), uyxfactors.row_begin(2));
