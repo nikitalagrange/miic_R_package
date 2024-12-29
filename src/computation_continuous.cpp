@@ -771,16 +771,16 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   int n_test_max = min(min(initbins, 20), n_levels_min);
 
   // FRS 4 jan 2024: remove fix to limit number of joint factors
- // if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
-  //   {
+ if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
+     {
    // Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
-   // n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
+    n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
    // n_test_max = 20;
    // Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
 
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
-  //}
+  }
   TempVector<int> r_temp(3);
   InfoBlock res_temp;
   for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
@@ -804,12 +804,13 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
     double Ik_x_yu = res_temp.I - res_temp.k;
 
-    if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&&Ik_x_yu>0)) {
+  if ((Ik_y_xu + Ik_x_yu) > best_res) {
+    //if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&&Ik_x_yu>0)) {
       best_initbins = test_n_bins;
       best_res = (Ik_y_xu + Ik_x_yu);
     }
-    if((Ik_y_xu + Ik_x_yu)<=0){
-      break;}
+   // if((Ik_y_xu + Ik_x_yu)<=0){
+     // break;}
   }
   // Initialize X and Y cuts with best_initbins
   resetCutPoints(
