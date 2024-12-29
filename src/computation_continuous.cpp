@@ -46,13 +46,13 @@ namespace {
 // Outputs:
 // - cuts: Grid (nb variables to process x nb max cuts), the cuts
 //------------------------------------------------------------------------------
-void resetCutPoints (const TempVector<int>& levels,
+void resetCutPoints (const TempVector<long long int>& levels,
                      const TempVector<int>& is_continuous,
                      const TempVector<int>& vars_to_process,
                      int vars_to_process_begin,
                      int vars_to_process_end,
-                     int init_nbin, int n_samples,
-                     TempGrid2d<int>& cuts) {
+                     long long int init_nbin, int n_samples,
+                     TempGrid2d<long long int>& cuts) {
   for (int vars_to_process_idx = vars_to_process_begin;
        vars_to_process_idx < vars_to_process_end;
        ++vars_to_process_idx) {
@@ -61,8 +61,8 @@ void resetCutPoints (const TempVector<int>& levels,
     //
     // Determine the length of a bin and the number of bins
     //
-    int n_bins = min (init_nbin, levels[vars_to_process[vars_to_process_idx]]);
-    int length_bin = n_samples / n_bins;
+    long long int n_bins = min (init_nbin, levels[vars_to_process[vars_to_process_idx]]);
+    long long int length_bin = n_samples / n_bins;
     if (length_bin < 1) {
       length_bin = 1;
       n_bins = n_samples;
@@ -107,13 +107,13 @@ void resetCutPoints (const TempVector<int>& levels,
 //------------------------------------------------------------------------------
 void updateFactors (const TempGrid2d<int>& data,
                     const TempGrid2d<int>& data_ordered,
-                    const TempGrid2d<int>& cuts,
+                    const TempGrid2d<long long int>& cuts,
                     const TempVector<int>& is_continuous,
                     const TempVector<int>& vars_to_process,
                     int vars_to_process_begin,
                     int vars_to_process_end,
-                    TempGrid2d<int>& factors,
-                    TempVector<int>& cuts_levels) {
+                    TempGrid2d<long long int>& factors,
+                    TempVector<long long int>& cuts_levels) {
   int n_samples = data_ordered.n_cols();
   for (int vars_to_process_idx = vars_to_process_begin;
        vars_to_process_idx < vars_to_process_end;
@@ -126,7 +126,7 @@ void updateFactors (const TempGrid2d<int>& data,
     // Affect all the values till the cut position to the value of 'level', then
     // increase the 'level' and proceed in the same way to the next cut position
     //
-    int level = 0;
+    long long int level = 0;
     for (int data_ordered_sample_idx = 0;
          data_ordered_sample_idx < n_samples;
          ++data_ordered_sample_idx) {
@@ -371,8 +371,8 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
   // Positions of the cuts (1..n_samples)
   TempVector<int> memory_cuts_pos (n_cuts_max);
   // Store the counts for 1st bin, {1st+2nd} bin, {1st+2nd+3rd} bin, ...
-  TempVector<int> cum_counts_target (nb_factors_target);
-  TempVector<int> cum_counts_joint (nb_factors_joint);
+  TempVector<long long int> cum_counts_target (nb_factors_target);
+  TempVector<long long int> cum_counts_joint (nb_factors_joint);
   //
   // Stochastic complexity used for the simple BIC cost.
   // Its value is 0.5 * number_of_other_levels where number of other levels is
@@ -413,7 +413,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
     // Compute target entropy
     //
     double Hk_cum_bin_target = 0, H_cum_bin_target = 0;
-    for (int level = 0; level < nb_factors_target; level++) {
+    for (long long int level = 0; level < nb_factors_target; level++) {
       int weighted_count = flag_weights
                                ? int(weight_per_sample * cum_counts_target[level] + 0.5)
                                : cum_counts_target[level];
@@ -443,8 +443,8 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
     // the bins {1+2} and {2}.
     //
     TempAllocatorScope scope;
-    TempVector<int> cut_counts_joint (cum_counts_joint);    // copy
-    TempVector<int> cut_counts_target (cum_counts_target);  // copy
+    TempVector<long long int> cut_counts_joint (cum_counts_joint);    // copy
+    TempVector<long long int> cut_counts_target (cum_counts_target);  // copy
     //
     // Initialize the cuts index and positions. Before trying to find cuts,
     // solution is one single bin from 0 to cum_bin_idx.
@@ -481,7 +481,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
       // compute the information of the remaining part {1,2,3}
       //
       double Hk_cut_to_cum_joint = 0, H_cut_to_cum_joint = 0;
-      for (int level = 0; level < nb_factors_joint; level++) {
+      for (long long int level = 0; level < nb_factors_joint; level++) {
         int weighted_count = flag_weights
                                  ? int(weight_per_sample * cut_counts_joint[level] + 0.5)
                                  : cut_counts_joint[level];
@@ -490,7 +490,7 @@ void optimizeCutPoints (const TempGrid2d<int>::ConstRow& data_ranked_target,
       H_cut_to_cum_joint = Hk_cut_to_cum_joint;
 
       double Hk_cut_to_cum_target = 0, H_cut_to_cum_target = 0;
-      for (int level = 0; level < nb_factors_target; level++) {
+      for (long long int level = 0; level < nb_factors_target; level++) {
         int weighted_count = flag_weights
                                  ? int(weight_per_sample * cut_counts_target[level] + 0.5)
                                  : cut_counts_target[level];
@@ -729,9 +729,9 @@ InfoBlock computeIxy(const TempGrid2d<int>& data,
 //------------------------------------------------------------------------------
 InfoBlock computeIxyui(const TempGrid2d<int>& data,
     const TempGrid2d<int>& data_idx, const TempVector<int>& is_continuous,
-    const TempVector<int>& var_idx, const TempVector<int>& levels,
-    const TempVector<double>& weights, bool flag_sample_weights, int initbins,
-    int maxbins, int cplx, bool negative_info,
+    const TempVector<int>& var_idx, const TempVector<long long int>& levels,
+    const TempVector<double>& weights, bool flag_sample_weights, long long int initbins,
+    long long int maxbins, int cplx, bool negative_info,
     std::shared_ptr<CtermCache> cache,
     std::shared_ptr<CutPointsInfo> cuts_info = nullptr) {
   TempAllocatorScope scope;
@@ -743,11 +743,11 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   double n_eff = accumulate(begin(weights), end(weights), 0.0);
   int u_initbins = min(30, max(2, int(0.5 + pow(n_eff, 1.0/(n_nodes)))));
   // allocation factors  x y
-  TempGrid2d<int> datafactors(n_nodes, n_samples);
-  TempGrid2d<int> cut(n_nodes, maxbins);
-  TempGrid2d<int> cut_y_u(n_nodes, maxbins);
-  TempGrid2d<int> cut_x_u(n_nodes, maxbins);
-  TempVector<int> r(n_nodes);  // n_levels of optimized variables
+  TempGrid2d<long long int> datafactors(n_nodes, n_samples);
+  TempGrid2d<long long int> cut(n_nodes, maxbins);
+  TempGrid2d<long long int> cut_y_u(n_nodes, maxbins);
+  TempGrid2d<long long int> cut_x_u(n_nodes, maxbins);
+  TempVector<long long int> r(n_nodes);  // n_levels of optimized variables
 
   // Initialize discrete factors and n_levels
   for (int l = 0; l < n_nodes; ++l) {
@@ -757,18 +757,18 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
       copy(data.row_begin(var), data.row_end(var), datafactors.row_begin(l));
     }
   }
-  TempGrid2d<int> uyxfactors(4, n_samples);  // u, uy, ux, uyx
-  TempVector<int> ruyx(4);
+  TempGrid2d<long long int> uyxfactors(4, n_samples);  // u, uy, ux, uyx
+  TempVector<long long int> ruyx(4);
   // Find the best initial conditions with the same number of bins (equalfreq)
   // on all continuous variables.
   double best_res{std::numeric_limits<double>::lowest()};
-  int best_initbins{initbins};
-  int n_levels_min{n_samples};
+  long long int best_initbins{initbins};
+  long long int n_levels_min{n_samples};
   for (int l = 0; l < n_nodes; ++l) {
     if (is_continuous[var_idx[l]] == 1)
       n_levels_min = min(n_levels_min, levels[var_idx[l]]);
   }
-  int n_test_max = min(min(initbins, 20), n_levels_min);
+  long long int n_test_max = min(min(initbins, 20), n_levels_min);
 
   // FRS 4 jan 2024: remove fix to limit number of joint factors
   if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
@@ -780,9 +780,9 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
   }
-  TempVector<int> r_temp(3);
+  TempVector<long long int> r_temp(3);
   InfoBlock res_temp;
-  for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
+  for (long long int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
     // Initialize factors, cut and r
     resetCutPoints(levels, is_continuous, var_idx, 0, n_nodes, test_n_bins,
         n_samples, cut);
@@ -810,7 +810,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
       levels, is_continuous, var_idx, 0, 2, best_initbins, n_samples, cut);
   updateFactors (data, data_idx, cut, is_continuous,
                  var_idx, 0, 2, datafactors, r);
-  TempVector<int> r_old(r);  // n_levels in the previous iteration
+  TempVector<long long int> r_old(r);  // n_levels in the previous iteration
 
   bool reuse_x_u_cuts = false;
   bool reuse_y_u_cuts = false;
@@ -842,10 +842,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         // opt u, I(y;xu)
         setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
-        int r0 = ruyx[3];  // xyu
-        int r1 = ruyx[2];  // xu
-        int sc_levels1 = r_old[1];
-        int sc_levels2 = r_old[l];  // old nlevels for combinatorial term
+        long long int r0 = ruyx[3];  // xyu
+        long long int r1 = ruyx[2];  // xu
+        long long int sc_levels1 = r_old[1];
+        long long int sc_levels2 = r_old[l];  // old nlevels for combinatorial term
         // Run optimization on U. 2 factors xyu and xu
         optimizeCutPoints(data.getConstRow(var_idx[l]),
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(3),
@@ -867,17 +867,17 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     double I_y_xu = res_temp.I;  // Before optimization on X.
     double Ik_y_xu = res_temp.I - res_temp.k;
     if (is_continuous[var_idx[0]] && r_old[0] > 1) {
-      int n_cuts_max = min(levels[var_idx[0]], maxbins);
+      long long int n_cuts_max = min(levels[var_idx[0]], maxbins);
       if (r_old[0] < n_cuts_max)
         Ik_y_xu -= cache->getLogChoose(n_cuts_max - 1, r_old[0] - 1);
     }
 
     if (is_continuous[var_idx[0]] == 1) {
       // I(y;xu), optimize on x
-      int r0 = ruyx[1];  // uy
-      int r1 = ruyx[0];  // u
-      int sc_levels1 = r_old[1];
-      int sc_levels2 = r_old[0];
+      long long int r0 = ruyx[1];  // uy
+      long long int r1 = ruyx[0];  // u
+      long long int sc_levels1 = r_old[1];
+      long long int sc_levels2 = r_old[0];
       // Run optimization on X. 2 factors uy and u
       optimizeCutPoints(data.getConstRow(var_idx[0]),
           data_idx.getConstRow(var_idx[0]), uyxfactors.getRow(1),
@@ -906,10 +906,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
 
         setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
-        int r0 = ruyx[3];  // xyu
-        int r1 = ruyx[1];  // yu
-        int sc_levels1 = r_old[0];
-        int sc_levels2 = r_old[l];
+        long long int r0 = ruyx[3];  // xyu
+        long long int r1 = ruyx[1];  // yu
+        long long int sc_levels1 = r_old[0];
+        long long int sc_levels2 = r_old[l];
         // Run optimization on U. 2 factors xyu and yu
         optimizeCutPoints(data.getConstRow(var_idx[l]),
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(3),
@@ -931,7 +931,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     double I_x_yu = res_temp.I;  // Before updating Y (and X).
     double Ik_x_yu = res_temp.I - res_temp.k;
     if ((is_continuous[var_idx[1]] == 1) && (r_old[1] > 1)) {
-      int n_cuts_max = min(levels[var_idx[1]], maxbins);
+      long long int n_cuts_max = min(levels[var_idx[1]], maxbins);
       if (r_old[1] < n_cuts_max) {
         Ik_x_yu -= cache->getLogChoose(n_cuts_max - 1, r_old[1] - 1);
       }
@@ -939,10 +939,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
 
     if (is_continuous[var_idx[1]] == 1) {
       // I(x;yu), optimize on y
-      int r0 = ruyx[2];  // ux
-      int r1 = ruyx[0];  // u
-      int sc_levels1 = r_old[0];
-      int sc_levels2 = r_old[1];
+      long long int r0 = ruyx[2];  // ux
+      long long int r1 = ruyx[0];  // u
+      long long int sc_levels1 = r_old[0];
+      long long int sc_levels2 = r_old[1];
       // Run optimization on Y. 2 factors ux and u
       optimizeCutPoints(data.getConstRow(var_idx[1]),
           data_idx.getConstRow(var_idx[1]), uyxfactors.getRow(2),
@@ -971,10 +971,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
 
         setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
-        int r0 = ruyx[2];           // xu
-        int r1 = ruyx[0];           // u
-        int sc_levels1 = r_old[0];  // x
-        int sc_levels2 = r_old[l];  // u
+        long long int r0 = ruyx[2];           // xu
+        long long int r1 = ruyx[0];           // u
+        long long int sc_levels1 = r_old[0];  // x
+        long long int sc_levels2 = r_old[l];  // u
         // optimization run on var_idx[l], 2 factors xu and u
         optimizeCutPoints(data.getConstRow(var_idx[l]),
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(2),
@@ -1019,10 +1019,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         if (is_continuous[var_idx[l]] == 0) continue;
 
         setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
-        int r0 = ruyx[1];           // yu
-        int r1 = ruyx[0];           // u
-        int sc_levels1 = r_old[1];  // y
-        int sc_levels2 = r_old[l];  // u
+        long long int r0 = ruyx[1];           // yu
+        long long int r1 = ruyx[0];           // u
+        long long int sc_levels1 = r_old[1];  // y
+        long long int sc_levels2 = r_old[l];  // u
         // optimization run on var_idx[l], 2 factors yu and u
         optimizeCutPoints(data.getConstRow(var_idx[l]),
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(1),
