@@ -808,7 +808,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
       best_initbins = test_n_bins;
       best_res = (Ik_y_xu + Ik_x_yu);
     }
-    if(best_res<=0){
+    if((Ik_y_xu + Ik_x_yu)<=0){
       break;}
   }
   // Initialize X and Y cuts with best_initbins
