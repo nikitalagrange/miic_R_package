@@ -785,15 +785,15 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   InfoBlock res_temp;
   for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
     // Initialize factors, cut and r
-    Rcpp::Rcout << "test_n_bins : " << std::endl << test_n_bins << "\n";
+    //Rcpp::Rcout << "test_n_bins : " << std::endl << test_n_bins << "\n";
     resetCutPoints(levels, is_continuous, var_idx, 0, n_nodes, test_n_bins,
         n_samples, cut);
-    Rcpp::Rcout << "L791 : " << "\n";
+    //Rcpp::Rcout << "L791 : " << "\n";
     updateFactors (data, data_idx, cut, is_continuous,
                    var_idx, 0, n_nodes, datafactors, r);
-    Rcpp::Rcout << "L794 : " << "\n";
+    //Rcpp::Rcout << "L794 : " << "\n";
     setUyxJointFactors(datafactors, r, -1, uyxfactors, ruyx);
-    Rcpp::Rcout << "L796 : " << "\n";
+    //Rcpp::Rcout << "L796 : " << "\n";
     r_temp.assign({r[1], ruyx[2], ruyx[3]});
     res_temp = computeMI(datafactors.getRow(1), uyxfactors.getRow(2),
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
@@ -809,7 +809,6 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
       best_res = (Ik_y_xu + Ik_x_yu);
     }
     if(best_res<=0){
-      best_initbins--;
       break;}
   }
   // Initialize X and Y cuts with best_initbins
