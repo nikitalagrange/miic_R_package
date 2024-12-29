@@ -773,6 +773,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   // FRS 4 jan 2024: remove fix to limit number of joint factors
   if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
      {
+    Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
     n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
