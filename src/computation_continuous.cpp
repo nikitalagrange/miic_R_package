@@ -775,6 +775,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
      {
     Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
     n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
+    n_test_max = 20;
     Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
 
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
@@ -787,10 +788,12 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     Rcpp::Rcout << "test_n_bins : " << std::endl << test_n_bins << "\n";
     resetCutPoints(levels, is_continuous, var_idx, 0, n_nodes, test_n_bins,
         n_samples, cut);
+    Rcpp::Rcout << "L791 : " << "\n";
     updateFactors (data, data_idx, cut, is_continuous,
                    var_idx, 0, n_nodes, datafactors, r);
-
+    Rcpp::Rcout << "L794 : " << "\n";
     setUyxJointFactors(datafactors, r, -1, uyxfactors, ruyx);
+    Rcpp::Rcout << "L796 : " << "\n";
     r_temp.assign({r[1], ruyx[2], ruyx[3]});
     res_temp = computeMI(datafactors.getRow(1), uyxfactors.getRow(2),
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
