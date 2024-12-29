@@ -804,7 +804,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
     double Ik_x_yu = res_temp.I - res_temp.k;
 
-    if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&Ik_x_yu>0)) {
+    if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&&Ik_x_yu>0)) {
       best_initbins = test_n_bins;
       best_res = (Ik_y_xu + Ik_x_yu);
     }
