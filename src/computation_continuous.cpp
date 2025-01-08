@@ -1,4 +1,3 @@
-
 #include "computation_continuous.h"
 
 #include <algorithm>  // std::min, std::transform
@@ -126,7 +125,7 @@ void updateFactors (const TempGrid2d<int>& data,
     // Affect all the values till the cut position to the value of 'level', then
     // increase the 'level' and proceed in the same way to the next cut position
     //
-    long long int level = 0;
+    int level = 0;
     for (int data_ordered_sample_idx = 0;
          data_ordered_sample_idx < n_samples;
          ++data_ordered_sample_idx) {
@@ -742,6 +741,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   int n_ui = n_nodes - 2;
   double n_eff = accumulate(begin(weights), end(weights), 0.0);
   int u_initbins = min(30, max(2, int(0.5 + pow(n_eff, 1.0/(n_nodes)))));
+  int flag;
   // allocation factors  x y
   TempGrid2d<int> datafactors(n_nodes, n_samples);
   TempGrid2d<int> cut(n_nodes, maxbins);
@@ -771,29 +771,28 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   int n_test_max = min(min(initbins, 20), n_levels_min);
 
   // FRS 4 jan 2024: remove fix to limit number of joint factors
- if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
-     {
-   // Rcpp::Rcout << "n_test_max : " << std::endl << n_test_max;
-    n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
-   // n_test_max = 20;
-   // Rcpp::Rcout << "n_test_max after: " << std::endl << n_test_max;
-
+  // if (std::pow (n_test_max-1, n_ui) >= INT_MAX)
+  //   {
+  //   n_test_max = std::pow (INT_MAX, 1.0 / n_ui) + 1;
   //   Rcpp::Rcout << "Note: Initial number of bins has been limited to "
   //     << n_test_max-1 << " for " << n_ui << " contributors to avoid overflow\n";
-  }
+  //   }
   TempVector<int> r_temp(3);
   InfoBlock res_temp;
   for (int test_n_bins = 2; test_n_bins < n_test_max; ++test_n_bins) {
     // Initialize factors, cut and r
-    //Rcpp::Rcout << "test_n_bins : " << std::endl << test_n_bins << "\n";
+  //Rcpp::Rcout << "L785\n";
     resetCutPoints(levels, is_continuous, var_idx, 0, n_nodes, test_n_bins,
         n_samples, cut);
-    //Rcpp::Rcout << "L791 : " << "\n";
+    //Rcpp::Rcout << "L788\n";
     updateFactors (data, data_idx, cut, is_continuous,
                    var_idx, 0, n_nodes, datafactors, r);
-    //Rcpp::Rcout << "L794 : " << "\n";
-    setUyxJointFactors(datafactors, r, -1, uyxfactors, ruyx);
-    //Rcpp::Rcout << "L796 : " << "\n";
+    //Rcpp::Rcout << "L791\n";
+    flag = setUyxJointFactors(datafactors, r, -1, uyxfactors, ruyx);
+    //Rcpp::Rcout << "test_n_bins :" << test_n_bins <<"\n";
+    if(flag==-1){
+      break;
+    }
     r_temp.assign({r[1], ruyx[2], ruyx[3]});
     res_temp = computeMI(datafactors.getRow(1), uyxfactors.getRow(2),
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
@@ -804,14 +803,12 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
     double Ik_x_yu = res_temp.I - res_temp.k;
 
-  if ((Ik_y_xu + Ik_x_yu) > best_res) {
-    //if (((Ik_y_xu + Ik_x_yu) > best_res)&&(Ik_y_xu>0&&Ik_x_yu>0)) {
+    if ((Ik_y_xu + Ik_x_yu) > best_res) {
       best_initbins = test_n_bins;
       best_res = (Ik_y_xu + Ik_x_yu);
     }
-   // if((Ik_y_xu + Ik_x_yu)<=0){
-     // break;}
   }
+  //Rcpp::Rcout << "best_initibins :" << best_initbins <<"\n";
   // Initialize X and Y cuts with best_initbins
   resetCutPoints(
       levels, is_continuous, var_idx, 0, 2, best_initbins, n_samples, cut);
@@ -826,9 +823,11 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
   // Keep the result of each iteration
   TempVector<double> I_list(iter_max);
   TempVector<double> Ik_list(iter_max);
-  double Ixy_ui{0}, Ikxy_ui{0};  // to be returned
+  double Ixy_ui{0}, Ikxy_ui{0};   // to be returned
   // Run optimization with best initial equal freq.
   for (int step = 0; step < iter_max; ++step) {
+    //double Ixy_ui{0}, Ikxy_ui{0}, I_y_xu{0}, Ik_y_xu{0}, I_x_yu{0}, Ik_x_yu{0}, I_x_u{0},Ik_x_u{0}, I_y_u{0}, Ik_y_u{0};   // to be returned
+      double I_y_xu{0}, Ik_y_xu{0}, I_x_yu{0}, Ik_x_yu{0}, I_x_u{0},Ik_x_u{0}, I_y_u{0}, Ik_y_u{0};
     // optimize I(y;xu) over x and u
     // Either reset cutpoints or re-use I(y;u) cutpoints
     if(reuse_y_u_cuts){
@@ -847,8 +846,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
       for (int l = 2; l < n_nodes; ++l) {
         if (is_continuous[var_idx[l]] == 0) continue;
         // opt u, I(y;xu)
-        setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
+        // Rcpp::Rcout << "L846 \n";
+        flag = setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
+        if(flag==1){
         int r0 = ruyx[3];  // xyu
         int r1 = ruyx[2];  // xu
         int sc_levels1 = r_old[1];
@@ -858,7 +859,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(3),
             uyxfactors.getRow(2), r0, r1, sc_levels1, sc_levels2,
             levels[var_idx[l]], weights, flag_sample_weights, maxbins, cache,
-            cplx, cut.getRow(l));
+            cplx, cut.getRow(l));}
       }  // for all Uis
       updateFactors (data, data_idx, cut, is_continuous,
                      var_idx, 2, n_nodes, datafactors, r);
@@ -866,21 +867,23 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
 
       if (n_ui == 1) break;
     }  // Iteration on ui
-
-    setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    //Rcpp::Rcout << "L867 \n";
+    flag = setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    if(flag==1){
     r_temp.assign({r_old[1], ruyx[2], ruyx[3]});
     res_temp = computeMI(datafactors.getRow(1), uyxfactors.getRow(2),
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
-    double I_y_xu = res_temp.I;  // Before optimization on X.
-    double Ik_y_xu = res_temp.I - res_temp.k;
+    I_y_xu = res_temp.I;  // Before optimization on X.
+    Ik_y_xu = res_temp.I - res_temp.k;
     if (is_continuous[var_idx[0]] && r_old[0] > 1) {
       int n_cuts_max = min(levels[var_idx[0]], maxbins);
       if (r_old[0] < n_cuts_max)
         Ik_y_xu -= cache->getLogChoose(n_cuts_max - 1, r_old[0] - 1);
-    }
+    }}
 
     if (is_continuous[var_idx[0]] == 1) {
       // I(y;xu), optimize on x
+      if(flag==1){
       int r0 = ruyx[1];  // uy
       int r1 = ruyx[0];  // u
       int sc_levels1 = r_old[1];
@@ -891,7 +894,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
           uyxfactors.getRow(0), r0, r1, sc_levels1, sc_levels2,
           levels[var_idx[0]], weights, flag_sample_weights, maxbins, cache,
           cplx, cut.getRow(0));
-    }
+    }}
 
     // optimize I(x;yu) over y and u
     // Either reset cutpoints or re-use I(x;u) cutpoints
@@ -904,15 +907,17 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
           levels, is_continuous, var_idx, 2, n_nodes, u_initbins,
           n_samples, cut);
     }
+  
     updateFactors (data, data_idx, cut, is_continuous,
                    var_idx, 2, n_nodes, datafactors, r);
     copy(begin(r) + 2, end(r), begin(r_old) + 2);
     for (int count = 0; (count < kMaxIterOnU) && !reuse_x_u_cuts; ++count) {
       for (int l = 2; l < n_nodes; ++l) {
         if (is_continuous[var_idx[l]] == 0) continue;
-
-        setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
+        //Rcpp::Rcout << "L914 \n";
+        flag = setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
+        if(flag==1){
         int r0 = ruyx[3];  // xyu
         int r1 = ruyx[1];  // yu
         int sc_levels1 = r_old[0];
@@ -922,7 +927,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
             data_idx.getConstRow(var_idx[l]), uyxfactors.getRow(3),
             uyxfactors.getRow(1), r0, r1, sc_levels1, sc_levels2,
             levels[var_idx[l]], weights, flag_sample_weights, maxbins, cache,
-            cplx, cut.getRow(l));
+            cplx, cut.getRow(l));}
       }  // for all Uis
       updateFactors (data, data_idx, cut, is_continuous,
                      var_idx, 2, n_nodes, datafactors, r);
@@ -930,22 +935,25 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
 
       if (n_ui == 1) break;
     }  // Iteration on ui
-
-    setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+   //Rcpp::Rcout << "L935 \n";
+    flag = setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    if(flag==1){
     r_temp.assign({r_old[0], ruyx[1], ruyx[3]});
     res_temp = computeMI(datafactors.getRow(0), uyxfactors.getRow(1),
         uyxfactors.getRow(3), r_temp, n_eff, weights, cache, cplx, 1);
-    double I_x_yu = res_temp.I;  // Before updating Y (and X).
-    double Ik_x_yu = res_temp.I - res_temp.k;
+    I_x_yu = res_temp.I;  // Before updating Y (and X).
+    Ik_x_yu = res_temp.I - res_temp.k;
     if ((is_continuous[var_idx[1]] == 1) && (r_old[1] > 1)) {
       int n_cuts_max = min(levels[var_idx[1]], maxbins);
       if (r_old[1] < n_cuts_max) {
         Ik_x_yu -= cache->getLogChoose(n_cuts_max - 1, r_old[1] - 1);
       }
-    }
+    }}
 
     if (is_continuous[var_idx[1]] == 1) {
       // I(x;yu), optimize on y
+      //Rcpp::Rcout << "L952 \n";
+      if(flag==1){
       int r0 = ruyx[2];  // ux
       int r1 = ruyx[0];  // u
       int sc_levels1 = r_old[0];
@@ -956,7 +964,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
           uyxfactors.getRow(0), r0, r1, sc_levels1, sc_levels2,
           levels[var_idx[1]], weights, flag_sample_weights, maxbins, cache,
           cplx, cut.getRow(1));
-    }
+    }}
 
     // optimize I(x;u) over u
     // Either reset cutpoints or re-use I(y;u) cutpoints
@@ -975,9 +983,10 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     for (int count = 0; (count < kMaxIterOnU) && !reuse_x_u_cuts; ++count) {
       for (int l = 2; l < n_nodes; ++l) {
         if (is_continuous[var_idx[l]] == 0) continue;
-
-        setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
+        //Rcpp::Rcout << "L983 \n";
+        flag = setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
         // init variables for the optimization run
+        if(flag==1){
         int r0 = ruyx[2];           // xu
         int r1 = ruyx[0];           // u
         int sc_levels1 = r_old[0];  // x
@@ -988,7 +997,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
             uyxfactors.getRow(0), r0, r1, sc_levels1, sc_levels2,
             levels[var_idx[l]], weights, flag_sample_weights, maxbins, cache,
             cplx, cut.getRow(l));
-      }  // for all Uis
+      } } // for all Uis
       updateFactors (data, data_idx, cut, is_continuous,
                      var_idx, 2, n_nodes, datafactors, r);
       copy(begin(r) + 2, end(r), begin(r_old) + 2);
@@ -1000,12 +1009,14 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     for(int l = 2; l < n_nodes; ++l){
       copy(cut.row_begin(l), cut.row_end(l), cut_x_u.row_begin(l));
     }
-    setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    //Rcpp::Rcout << "L1009 \n";
+    flag = setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    if(flag==1){
     r_temp.assign({r_old[0], ruyx[0], ruyx[2]});
     res_temp = computeMI(datafactors.getRow(0), uyxfactors.getRow(0),
         uyxfactors.getRow(2), r_temp, n_eff, weights, cache, cplx, 1);
-    double I_x_u = res_temp.I;  // After optimization on U.
-    double Ik_x_u = res_temp.I - res_temp.k;
+    I_x_u = res_temp.I;  // After optimization on U.
+    Ik_x_u = res_temp.I - res_temp.k;}
 
     // optimize I(y;u) over u
     // Either reset cutpoints or re-use I(y;u) cutpoints
@@ -1024,8 +1035,9 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     for (int count = 0; (count < kMaxIterOnU) && !reuse_y_u_cuts; ++count) {
       for (int l = 2; l < n_nodes; ++l) {
         if (is_continuous[var_idx[l]] == 0) continue;
-
-        setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
+        //Rcpp::Rcout << "L1035 \n";
+        flag = setUyxJointFactors(datafactors, r_old, l, uyxfactors, ruyx);
+        if(flag==1){
         int r0 = ruyx[1];           // yu
         int r1 = ruyx[0];           // u
         int sc_levels1 = r_old[1];  // y
@@ -1036,7 +1048,7 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
             uyxfactors.getRow(0), r0, r1, sc_levels1, sc_levels2,
             levels[var_idx[l]], weights, flag_sample_weights, maxbins, cache,
             cplx, cut.getRow(l));
-      }  // for all Uis
+      }}  // for all Uis
       updateFactors (data, data_idx, cut, is_continuous,
                      var_idx, 2, n_nodes, datafactors, r);
       copy(begin(r) + 2, end(r), begin(r_old) + 2);
@@ -1048,12 +1060,14 @@ InfoBlock computeIxyui(const TempGrid2d<int>& data,
     for(int l = 2; l < n_nodes; ++l){
       copy(cut.row_begin(l), cut.row_end(l), cut_y_u.row_begin(l));
     }
-    setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    //Rcpp::Rcout << "L1060 \n";
+    flag = setUyxJointFactors(datafactors, r_old, -1, uyxfactors, ruyx);
+    if(flag==1){
     r_temp.assign({r_old[1], ruyx[0], ruyx[1]});
     res_temp = computeMI(datafactors.getRow(1), uyxfactors.getRow(0),
         uyxfactors.getRow(1), r_temp, n_eff, weights, cache, cplx, 1);
-    double I_y_u = res_temp.I;  // After optimization on U.
-    double Ik_y_u = res_temp.I - res_temp.k;
+    I_y_u = res_temp.I;  // After optimization on U.
+    Ik_y_u = res_temp.I - res_temp.k;}
 
     // End of iteration: update X and Y cuts
     updateFactors (data, data_idx, cut, is_continuous,
