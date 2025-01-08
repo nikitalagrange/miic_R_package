@@ -6,11 +6,12 @@
 
 #include "computation_cache.h"
 #include "structure.h"
+#include <Rcpp.h>     // Rcpp::stop
 
 namespace miic {
 namespace computation {
 
-void setUyxJointFactors(const structure::TempGrid2d<int>& datafactors,
+int setUyxJointFactors(const structure::TempGrid2d<int>& datafactors,
     const structure::TempVector<int>& r_list, int exclude,
     structure::TempGrid2d<int>& uiyxfactors,
     structure::TempVector<int>& r_joint_list);
@@ -19,7 +20,7 @@ structure::TempVector<int> getDataOrder(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& var_idx);
 
-long long int fillHashList(const structure::TempGrid2d<int>& data,
+int fillHashList(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& ui_list,
     structure::TempVector<int>& hash_list);
@@ -107,12 +108,16 @@ int setJointFactors(const TempGrid2d<int>& factors,
   TempAllocatorScope scope;
   // Compute unique hash value for each sample in the joint space
   TempVector<int> hash_u(n_samples, 0);
-  long long int level_product = fillHashList(factors, r_list, var_idx, hash_u);
+  int level_product = fillHashList(factors, r_list, var_idx, hash_u);
+  //Rcpp::Rcout << "level_product"<< level_product<<"\n";
+  if(level_product==-1){
+    return -1;
+  }
 
   int r_joint{0};  // get ready to count
   if (level_product <= 8 * n_samples) {
     // Use large sparse vectors, no sort
-    TempVector<long long int> counts(level_product);
+    TempVector<int> counts(level_product);
     for (const auto h : hash_u)
       counts[h] = 1;
     // Order of the levels follow the order of the hash values,
