@@ -18,13 +18,12 @@ using utility::TempAllocatorScope;
 // OUTPUT
 // uiyxfactors: Joint datafactors. [ui, uiy, uix, uixy]
 // r_joint_list: Number of joint levels. 0: u, 1: uy, 2: ux, 3: uyx
-void setUyxJointFactors(const TempGrid2d<int>& factors,
+int setUyxJointFactors(const TempGrid2d<int>& factors,
     const TempVector<int>& r_list, int exclude, TempGrid2d<int>& uyxfactors,
     TempVector<int>& ruyx) {
   TempAllocatorScope scope;
 
-  long long int n_ui = factors.n_rows() - 2;
-  //Rcpp::Rcout << "L21_setJointFactor: " << "\n";
+  int n_ui = factors.n_rows() - 2;
   TempVector<int> ui_list;
   ui_list.reserve(n_ui);
   for (int u = 2; u < n_ui + 2; ++u) {
@@ -32,8 +31,16 @@ void setUyxJointFactors(const TempGrid2d<int>& factors,
       ui_list.push_back(u);
   }
   // Set u joint factors
-//Rcpp::Rcout << "L35_setJointFactor: " << "\n";
-  ruyx[0] = setJointFactors(factors, r_list, ui_list, uyxfactors.getRow(0));
+int ruyx_0;
+int ruyx_1;
+int ruyx_2;
+int ruyx_3;
+
+ruyx_0 = setJointFactors(factors, r_list, ui_list, uyxfactors.getRow(0));
+if(ruyx_0==-1){
+  return -1;
+}
+  ruyx[0] = ruyx_0;
   // Copy x and y factors and n_levels
   std::copy(factors.row_begin(0), factors.row_end(0), uyxfactors.row_begin(2));
   ruyx[2] = r_list[0];
@@ -41,14 +48,27 @@ void setUyxJointFactors(const TempGrid2d<int>& factors,
   ruyx[1] = r_list[1];
   // Combine y and u to get uy, overwriting column y
   TempVector<int> var_idx{1, 0};
-  ruyx[1] = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(1));
+
+  ruyx_1 = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(1));
+  if(ruyx_1==-1){
+    return -1;
+  }
+  ruyx[1] = ruyx_1;
   // Combine x and uiy to get uiyx
   var_idx.assign({2, 1});
-  ruyx[3] = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(3));
+  ruyx_3 = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(3));
+  if(ruyx_3==-1){
+    return -1;
+  }
+  ruyx[3] = ruyx_3;
   // Combine x and ui to get uix, overwriting column x
   var_idx.assign({2, 0});
-  ruyx[2] = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(2));
-  return;
+  ruyx_2 = setJointFactors(uyxfactors, ruyx, var_idx, uyxfactors.getRow(2));
+  if(ruyx_2==-1){
+    return -1;
+  }
+  ruyx[2] = ruyx_2;
+  return 1;
 }
 
 // Sort data w.r.t. each of the variables in var_idx from begin to end, in bulk
@@ -103,7 +123,7 @@ TempVector<int> getDataOrder(const TempGrid2d<int>& data,
   return order;
 }
 
-long long int fillHashList(const structure::TempGrid2d<int>& data,
+int fillHashList(const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
     const structure::TempVector<int>& ui_list,
     structure::TempVector<int>& hash_list) {
@@ -111,29 +131,31 @@ long long int fillHashList(const structure::TempGrid2d<int>& data,
   if (n_ui == 1) {
     int u = ui_list[0];
     std::copy(data.row_begin(u), data.row_end(u), begin(hash_list));
-    return (long long) r_list[u];
+    return r_list[u];
   }
   int n_samples = data.n_cols();
   if (n_ui == 2) {
-    long long int u0 = ui_list[0], u1 = ui_list[1];
-    long long int r0 = r_list[u0];
+    int u0 = ui_list[0], u1 = ui_list[1];
+    int r0 = r_list[u0];
     for (int i = 0; i < n_samples; ++i) {
       hash_list[i] += data(u0, i) + data(u1, i) * r0;
     }
-    return r0 * (long long) r_list[u1];
+    return r0 * r_list[u1];
   }
   utility::TempAllocatorScope scope;
   structure::TempVector<int> r_joint_list(r_list.size(), 0);
-  long long int n_levels_product{1};
-  long long int n_levels_product_old{1};
+  int n_levels_product{1};
   for (const auto u : ui_list) {
     r_joint_list[u] = n_levels_product;
-    n_levels_product_old = n_levels_product;
-    n_levels_product *= (long long) r_list[u];
+    n_levels_product *= r_list[u];
     // FRS 4 jan 2024: remove fix to limit number of joint factors
-    if (n_levels_product < 0)
-        n_levels_product = n_levels_product_old;
+    if (n_levels_product <= 0){
+      break;
+    }
     //   Rcpp::stop ("Maximum number of levels for joint factors exceeded.\nPlease raise an issue on the MIIC github.\n");
+  }
+  if(n_levels_product<=0){
+    return -1;
   }
 
   for (int i = 0; i < n_samples; ++i) {
