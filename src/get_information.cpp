@@ -190,6 +190,121 @@ InfoBlock getCondMutualInfo(int X, int Y, const vector<int>& ui_list,
   return res;
 }
 
+
+InfoBlock getEdgeScore(int X, int Y,const vector<int>& ui_list,
+    const Grid2d<int>& data_numeric, const Grid2d<int>& data_numeric_idx,
+    Environment& environment, std::shared_ptr<CutPointsInfo> cuts_info) {
+  TempAllocatorScope scope;
+  int n_ui = ui_list.size();
+  int n_samples_non_na = environment.n_samples;
+  bool any_na = 0; 
+  TempVector<int> sample_is_not_NA(environment.n_samples, 1);
+  TempVector<int> na_count(environment.n_samples, 0);
+  // Allocate data reducted *_red without rows containing NAs
+  // All *_red variables are passed to the optimization routine
+  TempGrid2d<int> data_red(n_ui+2, n_samples_non_na);
+  TempGrid2d<int> data_idx_red(n_ui+2, n_samples_non_na);
+  TempVector<int> levels_red(n_ui+2);
+  TempVector<int> is_continuous_red(n_ui+2);
+  TempVector<int> var_idx_red(n_ui+2);
+  TempVector<double> weights_red(n_samples_non_na);
+  bool flag_sample_weights = filterNA(X, Y, /*Z*/ -1, ui_list, data_numeric,
+    data_numeric_idx, environment.levels, environment.is_continuous,
+    environment.sample_weights, sample_is_not_NA, na_count, data_red,
+    data_idx_red, levels_red, is_continuous_red, var_idx_red, weights_red,
+    any_na);
+
+  // If X has only 1 level
+  if (levels_red[0] <= 1) {
+    InfoBlock res{n_samples_non_na, 0, 0};
+    return res;
+  }
+  InfoBlock res{0, 0, 0};
+
+   if (std::all_of(begin(is_continuous_red), end(is_continuous_red),
+          [](int x) { return x == 0; })){ 
+  res =  computeEdgeScore(data_red, levels_red, var_idx_red,
+    weights_red, environment.cache.cterm);}
+  return res;
+}
+
+
+double getComplexityOrient(int X, int Y,const vector<int>& ui_list,
+    const Grid2d<int>& data_numeric, const Grid2d<int>& data_numeric_idx,
+    Environment& environment) {
+  TempAllocatorScope scope;
+  int n_ui = ui_list.size();
+  int n_samples_non_na = environment.n_samples;
+  bool any_na = 0; 
+  TempVector<int> sample_is_not_NA(environment.n_samples, 1);
+  TempVector<int> na_count(environment.n_samples, 0);
+  // Allocate data reducted *_red without rows containing NAs
+  // All *_red variables are passed to the optimization routine
+  TempGrid2d<int> data_red(n_ui+2, n_samples_non_na);
+  TempGrid2d<int> data_idx_red(n_ui+2, n_samples_non_na);
+  TempVector<int> levels_red(n_ui+2);
+  TempVector<int> is_continuous_red(n_ui+2);
+  TempVector<int> var_idx_red(n_ui+2);
+  TempVector<double> weights_red(n_samples_non_na);
+  bool flag_sample_weights = filterNA(X, Y, /*Z*/ -1, ui_list, data_numeric,
+    data_numeric_idx, environment.levels, environment.is_continuous,
+    environment.sample_weights, sample_is_not_NA, na_count, data_red,
+    data_idx_red, levels_red, is_continuous_red, var_idx_red, weights_red,
+    any_na);
+
+  // If X has only 1 level
+  if (levels_red[0] <= 1) {
+    return 0.0;
+  }
+  double res = 0.0;
+
+   if (std::all_of(begin(is_continuous_red), end(is_continuous_red),
+          [](int x) { return x == 0; })){ 
+  res =  computeComplexityOrient(data_red, levels_red, var_idx_red,
+    weights_red, environment.cache.cterm);}
+
+  return res;
+}
+
+InfoBlock getCondEntropy(int X, const vector<int>& ui_list,
+    const Grid2d<int>& data_numeric, const Grid2d<int>& data_numeric_idx,
+    Environment& environment) {
+  TempAllocatorScope scope;
+  int n_ui = ui_list.size();
+  int n_samples_non_na = environment.n_samples;
+  bool any_na = 0; 
+  TempVector<int> sample_is_not_NA(environment.n_samples, 1);
+  TempVector<int> na_count(environment.n_samples, 0);
+  // Allocate data reducted *_red without rows containing NAs
+  // All *_red variables are passed to the optimization routine
+  TempGrid2d<int> data_red(n_ui+1, n_samples_non_na);
+  TempGrid2d<int> data_idx_red(n_ui+1, n_samples_non_na);
+  TempVector<int> levels_red(n_ui+1);
+  TempVector<int> is_continuous_red(n_ui+1);
+  TempVector<int> var_idx_red(n_ui+1);
+  TempVector<double> weights_red(n_samples_non_na);
+  bool flag_sample_weights = filterNA_Entropy(X, ui_list, data_numeric,
+      data_numeric_idx, environment.levels, environment.is_continuous,
+      environment.sample_weights, sample_is_not_NA, na_count, data_red,
+      data_idx_red, levels_red, is_continuous_red, var_idx_red, weights_red,
+      any_na);
+
+  // If X has only 1 level
+  if (levels_red[0] <= 1) {
+    InfoBlock res{static_cast<double>(n_samples_non_na), 0, 0};
+    return res;
+  }
+  InfoBlock res{0, 0, 0};
+
+   if (std::all_of(begin(is_continuous_red), end(is_continuous_red),
+          [](int x) { return x == 0; })){ 
+    res = computeCondEntropyDiscrete(data_red, levels_red, var_idx_red,
+        weights_red, environment.negative_info, environment.cplx,
+        environment.cache.cterm);}
+  
+  return res;
+}
+
 double getEntropy(Environment& environment, int Z, int X, int Y) {
   TempAllocatorScope scope;
   auto& cache = environment.cache.info_score;
