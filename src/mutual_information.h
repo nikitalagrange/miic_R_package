@@ -95,6 +95,56 @@ InfoBlock computeMI(const Cx& xfactors, const Cu& ufactors,
   return InfoBlock{n_eff, Iux, sc};
 }
 
+template <typename Cx, typename Cu, typename Cux, typename Crux,
+    typename = void_t<IsIntContainer<Cx>, IsIntContainer<Cu>,
+        IsIntContainer<Cux>, IsIntContainer<Crux>>>
+InfoBlock computeMIScore(const Cx& xfactors, const Cu& ufactors,
+    const Cux& uxfactors, const Crux& rux, double n_eff,
+    const TempVector<double>& sample_weights, std::shared_ptr<CtermCache> cache,
+  int cplx, int flag) {
+  TempAllocatorScope scope;
+
+  int n_samples = ufactors.size();
+  TempVector<double> nx(rux[0]);
+  TempVector<double> nu(rux[1]);
+  TempVector<double> nux(rux[2]);
+  for (int i = 0; i < n_samples; i++) {
+    nx[xfactors[i]] += sample_weights[i];
+    nu[ufactors[i]] += sample_weights[i];
+    nux[uxfactors[i]] += sample_weights[i];
+  }
+
+  double Hux{0}, Hu{0}, Hx{0}, sc{0};
+  for (const auto x : nx) {
+    if (x <= 0) continue;
+
+    Hx -= x * log(x);
+    sc += cache->getLogC(std::max((long)1, lround(x)), rux[1]);
+  }
+  for (const auto u : nu) {
+    if (u <= 0) continue;
+
+    Hu -= u * log(u);
+    sc += cache->getLogC(std::max((long)1, lround(u)), rux[0]);
+  }
+  for (const auto ux : nux) {
+    if (ux <= 0) continue;
+
+    Hux -= ux * log(ux);
+  }
+
+ 
+    auto n_eff_long = lround(n_eff);
+    sc -= cache->getLogC(n_eff_long, rux[0]);
+    sc -= cache->getLogC(n_eff_long, rux[1]);
+    sc *= 0.5;
+  
+  
+  double Iux = n_eff * log(n_eff) + (Hu + Hx - Hux);
+
+  return InfoBlock{n_eff, Iux, sc};
+}
+
 template <typename Cjf, typename = IsIntContainer<Cjf>>
 int setJointFactors(const TempGrid2d<int>& factors,
     const TempVector<int>& r_list, const TempVector<int>& var_idx,
