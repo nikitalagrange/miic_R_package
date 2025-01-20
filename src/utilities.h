@@ -61,6 +61,20 @@ bool filterNA(int X, int Y, int Z, const std::vector<int>& ui_list,
     structure::TempVector<int>& posArray_red,
     structure::TempVector<double>& sample_weights_red, bool any_na);
 
+  bool filterNA_Entropy(int X, const std::vector<int>& ui_list,
+    const structure::Grid2d<int>& data_numeric,
+    const structure::Grid2d<int>& data_numeric_idx,
+    const std::vector<int>& levels, const std::vector<int>& is_continuous,
+    const std::vector<double>& sample_weights,
+    const structure::TempVector<int>& sample_is_not_NA,
+    const structure::TempVector<int>& NAs_count,
+    structure::TempGrid2d<int>& data_numeric_red,
+    structure::TempGrid2d<int>& data_numeric_idx_red,
+    structure::TempVector<int>& levels_red,
+    structure::TempVector<int>& is_continuous_red,
+    structure::TempVector<int>& posArray_red,
+    structure::TempVector<double>& sample_weights_red, bool any_na);
+
 size_t getLinearAllocatorSize(int n_samples, int n_nodes, int maxbins,
     int initbins, const std::vector<int>& is_continuous,
     const std::vector<int>& levels);
