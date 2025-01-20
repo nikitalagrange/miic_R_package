@@ -86,6 +86,98 @@ List mydiscretizeMutual(List input_data, List arg_list) {
   return result;
 }
 
+
+// [[Rcpp::export]]
+List EdgeScore(List input_data, List arg_list) {
+  // Initialize Environment with mandatory inputs
+  Environment environment(as<int>(arg_list["n_samples"]),
+      as<int>(arg_list["n_nodes"]), as<vector<int>>(input_data["factor"]),
+      as<vector<int>>(input_data["order"]),
+      as<vector<int>>(arg_list["is_continuous"]),
+      as<vector<int>>(arg_list["levels"]));
+
+  // Set optional parameters
+  setEnvironmentFromR(input_data, arg_list, environment);
+  int maxbins = environment.maxbins;
+
+  size_t li_alloc_size = getLinearAllocatorSize(environment.n_samples,
+      environment.n_nodes, maxbins, environment.initbins,
+      environment.is_continuous, environment.levels);
+  li_alloc_ptr = std::make_unique<LinearAllocator>(li_alloc_size);
+
+  vector<int> ui_list(environment.n_nodes - 2);
+  std::iota(begin(ui_list), end(ui_list), 2);
+
+
+  auto res = getEdgeScore(0, 1, ui_list, environment.data_numeric,
+      environment.data_numeric_idx, environment);
+
+  List result = List::create(
+      _["info"]            = res.I,
+      _["infok"]           = -res.I + res.k);
+  
+  return result;
+}
+
+// [[Rcpp::export]]
+double complexOrient(List input_data, List arg_list) {
+  // Initialize Environment with mandatory inputs
+  Environment environment(as<int>(arg_list["n_samples"]),
+      as<int>(arg_list["n_nodes"]), as<vector<int>>(input_data["factor"]),
+      as<vector<int>>(input_data["order"]),
+      as<vector<int>>(arg_list["is_continuous"]),
+      as<vector<int>>(arg_list["levels"]));
+
+  // Set optional parameters
+  setEnvironmentFromR(input_data, arg_list, environment);
+  int maxbins = environment.maxbins;
+
+  size_t li_alloc_size = getLinearAllocatorSize(environment.n_samples,
+      environment.n_nodes, maxbins, environment.initbins,
+      environment.is_continuous, environment.levels);
+  li_alloc_ptr = std::make_unique<LinearAllocator>(li_alloc_size);
+
+  vector<int> ui_list(environment.n_nodes - 2);
+  std::iota(begin(ui_list), end(ui_list), 2);
+
+
+    double res = getComplexityOrient(0, 1, ui_list, environment.data_numeric,
+      environment.data_numeric_idx, environment);
+  
+  return res;
+}
+
+// [[Rcpp::export]]
+List mydiscretizeEntropy(List input_data, List arg_list) {
+  // Initialize Environment with mandatory inputs
+  Environment environment(as<int>(arg_list["n_samples"]),
+      as<int>(arg_list["n_nodes"]), as<vector<int>>(input_data["factor"]),
+      as<vector<int>>(input_data["order"]),
+      as<vector<int>>(arg_list["is_continuous"]),
+      as<vector<int>>(arg_list["levels"]));
+
+  // Set optional parameters
+  setEnvironmentFromR(input_data, arg_list, environment);
+  int maxbins = environment.maxbins;
+
+  size_t li_alloc_size = getLinearAllocatorSize(environment.n_samples,
+      environment.n_nodes, maxbins, environment.initbins,
+      environment.is_continuous, environment.levels);
+  li_alloc_ptr = std::make_unique<LinearAllocator>(li_alloc_size);
+
+  vector<int> ui_list(environment.n_nodes - 1);
+  std::iota(begin(ui_list), end(ui_list), 1);
+
+  auto res = getCondEntropy(0, ui_list, environment.data_numeric,
+      environment.data_numeric_idx, environment);
+
+  List result = List::create(
+      _["entro"]           = res.I,
+      _["entrok"]          = res.I + res.k);
+  
+  return result;
+}
+
 // [[Rcpp::export]]
 List miicRGetInfo3Point(List input_data, List arg_list) {
   // Initialize Environment with mandatory inputs
