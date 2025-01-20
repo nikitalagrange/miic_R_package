@@ -9,11 +9,27 @@ mydiscretizeMutual <- function(input_data, arg_list) {
     .Call('_miic_mydiscretizeMutual', PACKAGE = 'miic', input_data, arg_list)
 }
 
+EdgeScore <- function(input_data, arg_list) {
+    .Call('_miic_EdgeScore', PACKAGE = 'miic', input_data, arg_list)
+}
+
+complexOrient <- function(input_data, arg_list) {
+    .Call('_miic_complexOrient', PACKAGE = 'miic', input_data, arg_list)
+}
+
+mydiscretizeEntropy <- function(input_data, arg_list) {
+    .Call('_miic_mydiscretizeEntropy', PACKAGE = 'miic', input_data, arg_list)
+}
+
 miicRGetInfo3Point <- function(input_data, arg_list) {
     .Call('_miic_miicRGetInfo3Point', PACKAGE = 'miic', input_data, arg_list)
 }
 
 reconstruct <- function(input_data, arg_list) {
     .Call('_miic_reconstruct', PACKAGE = 'miic', input_data, arg_list)
+}
+
+regret_term <- function(RN, Rr, input_data, arg_list) {
+    .Call('_miic_regret_term', PACKAGE = 'miic', RN, Rr, input_data, arg_list)
 }
 
