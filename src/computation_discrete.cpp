@@ -134,6 +134,247 @@ InfoBlock computeCondMutualInfoDiscrete(const TempGrid2d<int>& data,
   return InfoBlock{N_total, Ixy_ui, kxy_ui};
 }
 
+
+InfoBlock computeEdgeScore(const TempGrid2d<int>& data,
+    const TempVector<int>& r_list, const TempVector<int>& var_idx,
+    const TempVector<double>& weights, std::shared_ptr<CtermCache> cache) {
+  TempAllocatorScope scope;
+
+  int n_samples = data.n_cols();
+  int id_x = var_idx[0], id_y = var_idx[1];
+  int rx = r_list[id_x], ry = r_list[id_y];
+  double n_eff = accumulate(begin(weights), end(weights), 0.0);
+
+  if (var_idx.size() == 2) {
+    TempVector<int> xy_factors(n_samples);
+    int rxy = setJointFactors(data, r_list, var_idx, xy_factors);
+
+    TempVector<int> r_temp{rx, ry, rxy};
+    return computeMIScore(data.getConstRow(id_x), data.getConstRow(id_y), xy_factors,
+        r_temp, n_eff, weights, cache,1,0);
+  }
+
+  TempVector<int> ui_list(begin(var_idx) + 2, end(var_idx));
+  TempVector<int> order = getDataOrder(data, r_list, var_idx);
+  TempVector<int> hash_u(n_samples, 0);
+  int ru = fillHashList(data, r_list, ui_list, hash_u);
+  // Entropy terms
+  double Hu{0}, Huy{0}, Hux{0}, Huyx{0};
+  // Complexity terms
+  double logC_ux_y{0}, logC_uy_x{0}, logC_u_y{0}, logC_u_x{0};
+  // Counting variables
+  double Nu{0}, Nuy{0}, Nuyx{0}, N_total{0};
+  TempVector<double> Nux_list(rx, 0);
+  // Sentinels whose change of value (compared to the next sample) indicates
+  // that the related counts should be added to mutual information (as NlogN)
+  int X{data(id_x, order[0])};
+  int X_next{-1};
+  int Y{data(id_y, order[0])};
+  int Y_next{-1};
+  int Lui = hash_u[order[0]];
+  int Lui_next{-1};
+
+  // make the counts and compute mutual infos & logCs
+  for (int k = 0; k < n_samples; ++k) {
+    Nuyx += weights[order[k]];
+    int i_next = k + 1 < n_samples ? order[k + 1] : -1;
+    if (i_next != -1) {
+      X_next = data(id_x, i_next);
+      Y_next = data(id_y, i_next);
+      Lui_next = hash_u[i_next];
+      if (X_next == X && Y_next == Y && Lui_next == Lui) continue;
+    }
+    // Conclude on current count
+    if (Nuyx > 0) {
+      Nu += Nuyx;
+      Nuy += Nuyx;
+      Nux_list[X] += Nuyx;
+      N_total += Nuyx;
+
+      Huyx -= Nuyx * log(Nuyx);
+    }
+    Nuyx = 0;  // reset cumulative weight
+    if (i_next != -1) {
+      X = X_next;
+      if (Y_next == Y && Lui_next == Lui) continue;
+    }
+    // Conclude on current count
+    if (Nuy > 0) {
+      Huy -= Nuy * log(Nuy);
+      logC_uy_x += cache->getLogC(lround(Nuy), rx);
+      Nuy = 0;
+    }
+    if (i_next != -1) {
+      Y = Y_next;
+      if (Lui_next == Lui) continue;
+      Lui = Lui_next;
+    }
+    // Conclude on current count
+    for (auto& Nxu : Nux_list) {
+      if (Nxu > 0) {
+        Hux -= Nxu * log(Nxu);
+        logC_ux_y += cache->getLogC(lround(Nxu), ry);
+        Nxu = 0;  // reset counter
+      }
+    }
+    if (Nu > 0) {
+      Hu -= Nu * log(Nu);
+      auto Nu_long = lround(Nu);
+      logC_u_x += cache->getLogC(Nu_long, rx);
+      logC_u_y += cache->getLogC(Nu_long, ry);
+      Nu = 0;
+    }
+  }
+
+  double Ixy_ui = Hux + Huy - Hu - Huyx;
+  double kxy_ui = 0.5 * (logC_ux_y - logC_u_y + logC_uy_x - logC_u_x);
+
+  return InfoBlock{N_total, Ixy_ui, kxy_ui};
+}
+
+double computeComplexityOrient(const TempGrid2d<int>& data,
+    const TempVector<int>& r_list, const TempVector<int>& var_idx,
+    const TempVector<double>& weights, std::shared_ptr<CtermCache> cache) {
+  TempAllocatorScope scope;
+
+  int n_samples = data.n_cols();
+  int id_x = var_idx[0], id_y = var_idx[1];
+  int rx = r_list[id_x], ry = r_list[id_y];
+
+  TempVector<int> ui_list(begin(var_idx) + 2, end(var_idx));
+  TempVector<int> order = getDataOrder(data, r_list, var_idx);
+  TempVector<int> hash_u(n_samples, 0);
+  int ru = fillHashList(data, r_list, ui_list, hash_u);
+  // Complexity terms
+  double logC_ux_y{0}, logC_u_y{0};
+
+  // Counting variables
+  double Nu{0}, Nuyx{0};
+  TempVector<double> Nux_list(rx, 0);
+  // Sentinels whose change of value (compared to the next sample) indicates
+  // that the related counts should be added to mutual information (as NlogN)
+  int X{data(id_x, order[0])};
+  int X_next{-1};
+  int Y{data(id_y, order[0])};
+  int Y_next{-1};
+  int Lui = hash_u[order[0]];
+  int Lui_next{-1};
+
+  // make the counts and compute mutual infos & logCs
+  for (int k = 0; k < n_samples; ++k) {
+    Nuyx += weights[order[k]];
+    int i_next = k + 1 < n_samples ? order[k + 1] : -1;
+    if (i_next != -1) {
+      X_next = data(id_x, i_next);
+      Y_next = data(id_y, i_next);
+      Lui_next = hash_u[i_next];
+      if (X_next == X && Y_next == Y && Lui_next == Lui) continue;
+    }
+    // Conclude on current count
+    if (Nuyx > 0) {
+      Nu += Nuyx;
+      Nux_list[X] += Nuyx;
+    }
+    Nuyx = 0;  // reset cumulative weight
+    if (i_next != -1) {
+      X = X_next;
+      if (Y_next == Y && Lui_next == Lui) continue;
+    }
+    if (i_next != -1) {
+      Y = Y_next;
+      if (Lui_next == Lui) continue;
+      Lui = Lui_next;
+    }
+    // Conclude on current count
+    for (auto& Nxu : Nux_list) {
+      if (Nxu > 0) {
+        logC_ux_y += cache->getLogC(lround(Nxu), ry);
+        Nxu = 0;  // reset counter
+      }
+    }
+    if (Nu > 0) {
+      auto Nu_long = lround(Nu);
+      logC_u_y += cache->getLogC(Nu_long, ry);
+      Nu = 0;
+    }
+  }
+
+  double kxy_ui = logC_ux_y - logC_u_y;
+
+  return kxy_ui;
+}
+
+InfoBlock computeCondEntropyDiscrete(const TempGrid2d<int>& data,
+    const TempVector<int>& r_list, const TempVector<int>& var_idx,
+    const TempVector<double>& weights, bool negative_info, int cplx,
+    std::shared_ptr<CtermCache> cache) {
+  TempAllocatorScope scope;
+
+  int n_samples = data.n_cols();
+  int id_x = var_idx[0];
+  int rx = r_list[id_x];
+  TempVector<int> ui_list(begin(var_idx) + 1, end(var_idx));
+  TempVector<int> order = getDataOrder(data, r_list, var_idx);
+  TempVector<int> hash_u(n_samples, 0);
+  int ru = fillHashList(data, r_list, ui_list, hash_u);
+  // Entropy terms
+  double Hu{0}, Hux{0};
+  // Complexity terms
+  double logC_u_x{0};
+  // Counting variables
+  double Nu{0}, Nuyx{0}, N_total{0};
+  TempVector<double> Nux_list(rx, 0);
+  // Sentinels whose change of value (compared to the next sample) indicates
+  // that the related counts should be added to mutual information (as NlogN)
+  int X{data(id_x, order[0])};
+  int X_next{-1};
+  int Lui = hash_u[order[0]];
+  int Lui_next{-1};
+
+  // make the counts and compute mutual infos & logCs
+  for (int k = 0; k < n_samples; ++k) {
+    Nuyx += weights[order[k]];
+    int i_next = k + 1 < n_samples ? order[k + 1] : -1;
+    if (i_next != -1) {
+      X_next = data(id_x, i_next);
+      Lui_next = hash_u[i_next];
+      if (X_next == X && Lui_next == Lui) continue;
+    }
+    // Conclude on current count
+    if (Nuyx > 0) {
+      Nu += Nuyx;
+      Nux_list[X] += Nuyx;
+      N_total += Nuyx;
+    }
+    Nuyx = 0;  // reset cumulative weight
+    if (i_next != -1) {
+        X = X_next;
+    }
+    // Conclude on current count
+      if (i_next != -1) {
+      if (Lui_next == Lui) continue;
+      Lui = Lui_next;
+    }
+    for (auto& Nxu : Nux_list) {
+      if (Nxu > 0) {
+        Hux -= Nxu * log(Nxu);
+        Nxu = 0;  // reset counter
+      }
+    }
+    if (Nu > 0) {
+      Hu -= Nu * log(Nu);
+      auto Nu_long = lround(Nu);
+      logC_u_x += cache->getLogC(Nu_long, rx);
+      Nu = 0;
+    }
+  }
+
+  double Hx_ui = Hux - Hu;
+  double kx_ui = logC_u_x;
+
+  return InfoBlock{N_total, Hx_ui, kx_ui};}
+
+
 Info3PointBlock computeInfo3PointAndScoreDiscrete(const TempGrid2d<int>& data,
     const TempVector<int>& r_list, const TempVector<int>& var_idx,
     const TempVector<double>& weights, int cplx, bool negative_info,
