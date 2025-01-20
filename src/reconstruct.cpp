@@ -153,3 +153,22 @@ List reconstruct(List input_data, List arg_list) {
   }
   return result;
 }
+
+
+// [[Rcpp::export]]
+double regret_term(SEXP RN, SEXP Rr,List input_data, List arg_list) {
+  // Initialize Environment with mandatory inputs
+  int N = Rcpp::as<int>(RN);
+  int r = Rcpp::as<int>(Rr);
+  Environment environment(as<int>(arg_list["n_samples"]),
+      as<int>(arg_list["n_nodes"]), as<vector<int>>(input_data["factor"]),
+      as<vector<int>>(input_data["order"]),
+      as<vector<int>>(arg_list["is_continuous"]),
+      as<vector<int>>(arg_list["levels"]));
+
+  // Set optional parameters
+  setEnvironmentFromR(input_data, arg_list, environment);
+  double res;
+  res = environment.cache.cterm->getLogC(N,r);
+ 
+  return res;}
