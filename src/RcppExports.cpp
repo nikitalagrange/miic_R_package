@@ -34,6 +34,42 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// EdgeScore
+List EdgeScore(List input_data, List arg_list);
+RcppExport SEXP _miic_EdgeScore(SEXP input_dataSEXP, SEXP arg_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input_data(input_dataSEXP);
+    Rcpp::traits::input_parameter< List >::type arg_list(arg_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(EdgeScore(input_data, arg_list));
+    return rcpp_result_gen;
+END_RCPP
+}
+// complexOrient
+double complexOrient(List input_data, List arg_list);
+RcppExport SEXP _miic_complexOrient(SEXP input_dataSEXP, SEXP arg_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input_data(input_dataSEXP);
+    Rcpp::traits::input_parameter< List >::type arg_list(arg_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(complexOrient(input_data, arg_list));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mydiscretizeEntropy
+List mydiscretizeEntropy(List input_data, List arg_list);
+RcppExport SEXP _miic_mydiscretizeEntropy(SEXP input_dataSEXP, SEXP arg_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input_data(input_dataSEXP);
+    Rcpp::traits::input_parameter< List >::type arg_list(arg_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(mydiscretizeEntropy(input_data, arg_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 // miicRGetInfo3Point
 List miicRGetInfo3Point(List input_data, List arg_list);
 RcppExport SEXP _miic_miicRGetInfo3Point(SEXP input_dataSEXP, SEXP arg_listSEXP) {
@@ -58,12 +94,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// regret_term
+double regret_term(SEXP RN, SEXP Rr, List input_data, List arg_list);
+RcppExport SEXP _miic_regret_term(SEXP RNSEXP, SEXP RrSEXP, SEXP input_dataSEXP, SEXP arg_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type RN(RNSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Rr(RrSEXP);
+    Rcpp::traits::input_parameter< List >::type input_data(input_dataSEXP);
+    Rcpp::traits::input_parameter< List >::type arg_list(arg_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(regret_term(RN, Rr, input_data, arg_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_miic_mydiscretizeMDL", (DL_FUNC) &_miic_mydiscretizeMDL, 2},
     {"_miic_mydiscretizeMutual", (DL_FUNC) &_miic_mydiscretizeMutual, 2},
+    {"_miic_EdgeScore", (DL_FUNC) &_miic_EdgeScore, 2},
+    {"_miic_complexOrient", (DL_FUNC) &_miic_complexOrient, 2},
+    {"_miic_mydiscretizeEntropy", (DL_FUNC) &_miic_mydiscretizeEntropy, 2},
     {"_miic_miicRGetInfo3Point", (DL_FUNC) &_miic_miicRGetInfo3Point, 2},
     {"_miic_reconstruct", (DL_FUNC) &_miic_reconstruct, 2},
+    {"_miic_regret_term", (DL_FUNC) &_miic_regret_term, 4},
     {NULL, NULL, 0}
 };
 
