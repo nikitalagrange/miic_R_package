@@ -13,6 +13,24 @@ structure::InfoBlock computeCondMutualInfoDiscrete(
     const structure::TempVector<int>& var_idx,
     const structure::TempVector<double>& weights, int cplx,
     bool negative_info, std::shared_ptr<CtermCache> cache);
+structure::InfoBlock computeEdgeScore(
+    const structure::TempGrid2d<int>& data,
+    const structure::TempVector<int>& r_list,
+    const structure::TempVector<int>& var_idx,
+    const structure::TempVector<double>& weights,
+    std::shared_ptr<CtermCache> cache);
+    double computeComplexityOrient(
+    const structure::TempGrid2d<int>& data,
+    const structure::TempVector<int>& r_list,
+    const structure::TempVector<int>& var_idx,
+    const structure::TempVector<double>& weights,
+    std::shared_ptr<CtermCache> cache);
+structure::InfoBlock computeCondEntropyDiscrete(
+    const structure::TempGrid2d<int>& data,
+    const structure::TempVector<int>& r_list,
+    const structure::TempVector<int>& var_idx,
+    const structure::TempVector<double>& weights,
+    bool negative_info, int cplx, std::shared_ptr<CtermCache> cache);
 structure::Info3PointBlock computeInfo3PointAndScoreDiscrete(
     const structure::TempGrid2d<int>& data,
     const structure::TempVector<int>& r_list,
