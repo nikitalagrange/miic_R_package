@@ -54,34 +54,34 @@ List mydiscretizeMutual(List input_data, List arg_list) {
       _["info"]            = res.I,
       _["infok"]           = res.I - res.k);
 
-  if (cuts_ptr != nullptr) {
+  //if (cuts_ptr != nullptr) {
     // Prepare cut points matrix
-    int niterations = cuts_ptr->n_iterations;
-    TempGrid2d<int> iterative_cuts(kStepMax * maxbins, 2);
-    const auto& cuts = cuts_ptr->cutpoints;
-    for (int l = 0; l < kStepMax; ++l) {
-      for (int k = 0; k < 2; ++k) {
-        int i = 0;
-        while (cuts(l, i + maxbins * k) < cuts(l, i + maxbins * k + 1)) {
-          iterative_cuts(maxbins * l + i, k) = cuts(l, i + maxbins * k);
-          ++i;
-        }
-        for (int j = i; j < maxbins; j++) {
-          iterative_cuts(maxbins * l + j, k) = -1;
-        }
-      }
-    }
+   // int niterations = cuts_ptr->n_iterations;
+    //TempGrid2d<int> iterative_cuts(kStepMax * maxbins, 2);
+   // const auto& cuts = cuts_ptr->cutpoints;
+   // for (int l = 0; l < kStepMax; ++l) {
+    //  for (int k = 0; k < 2; ++k) {
+     //   int i = 0;
+      //  while (cuts(l, i + maxbins * k) < cuts(l, i + maxbins * k + 1)) {
+       //   iterative_cuts(maxbins * l + i, k) = cuts(l, i + maxbins * k);
+        //  ++i;
+       // }
+       // for (int j = i; j < maxbins; j++) {
+        //  iterative_cuts(maxbins * l + j, k) = -1;
+        //}
+     // }
+    //}
 
-    NumericMatrix cutpoints(niterations * maxbins, 2);
-    for (int i = 0; i < cutpoints.nrow(); ++i) {
-      for (int j = 0; j < 2; ++j) {
-        cutpoints[i + j * cutpoints.nrow()] = iterative_cuts(i, j);
-      }
-    }
+    //NumericMatrix cutpoints(niterations * maxbins, 2);
+   // for (int i = 0; i < cutpoints.nrow(); ++i) {
+     // for (int j = 0; j < 2; ++j) {
+      //  cutpoints[i + j * cutpoints.nrow()] = iterative_cuts(i, j);
+     // }
+   // }
 
-    result.push_back(cutpoints, "cutpointsmatrix");
-    result.push_back(cuts_ptr->I_equal_freq_max, "efinfo");
-  }
+   // result.push_back(cutpoints, "cutpointsmatrix");
+    //result.push_back(cuts_ptr->I_equal_freq_max, "efinfo");
+  //}
 
   return result;
 }
