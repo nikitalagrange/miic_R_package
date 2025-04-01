@@ -78,7 +78,7 @@ install.packages("miic")
 Or from GitHub (development):
 ```R
 # install.packages("remotes")
-remotes::install_github("nlagrang/miic_R_package")
+remotes::install_github("nikitalagrang/miic_R_package")
 ```
 
 ## Quick start
